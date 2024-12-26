@@ -11,11 +11,12 @@ class CameraView extends StatefulWidget {
   const CameraView({Key? key}) : super(key: key);
 
   @override
-  createState()=>CameraViewState();
+  createState() => CameraViewState();
 }
 
 class CameraViewState extends State<CameraView> {
-  BonsoirService bonsoir = BonsoirService(name: UniqueKey().toString(), type: "_dartobservatory._tcp", port: 4000);
+  BonsoirService bonsoir = BonsoirService(
+      name: UniqueKey().toString(), type: "_dartobservatory._tcp", port: 4000);
   BonsoirBroadcast? _broadcast;
 
   final _localRenderer = RTCVideoRenderer();
@@ -63,6 +64,7 @@ class CameraViewState extends State<CameraView> {
   //--------------------------------------------------------------------------//
   Future<void> _startSocketHandler() async {
     _socketServer = Server();
+    // _socketServer!.set("origins", ["*:*"]);
     _socketServer!.on('connection', (client) async {
       _socket = client;
       if (_socket != null) {
@@ -91,7 +93,7 @@ class CameraViewState extends State<CameraView> {
     await _localRenderer.initialize();
 
     _localPc = await createPeerConnection(configuration, constraints);
-    _localPc!.onIceConnectionState = (RTCIceConnectionState state){
+    _localPc!.onIceConnectionState = (RTCIceConnectionState state) {
       switch (state) {
         case RTCIceConnectionState.RTCIceConnectionStateFailed:
           _localPc!.restartIce();
@@ -118,6 +120,13 @@ class CameraViewState extends State<CameraView> {
             'candidate': candidate.candidate,
           });
         });
+      }
+    };
+
+    final mediaConstraints = {
+      'audio': true,
+      'video': {
+        'facingMode': 'environment', // 使用后置摄像头
       }
     };
 
@@ -149,14 +158,16 @@ class CameraViewState extends State<CameraView> {
     } else if (msg["type"] == "answer") {
       try {
         if (_localPc != null) {
-          await _localPc!.setRemoteDescription(RTCSessionDescription(msg["data"], msg["type"]));
+          await _localPc!.setRemoteDescription(
+              RTCSessionDescription(msg["data"], msg["type"]));
         }
       } catch (e) {
         print(e);
       }
     } else if (msg["type"] == "candidate") {
       final can1 = msg["data"];
-      RTCIceCandidate candidate = RTCIceCandidate(can1["candidate"], can1["sdpMid"], can1["sdpMLineIndex"]);
+      RTCIceCandidate candidate = RTCIceCandidate(
+          can1["candidate"], can1["sdpMid"], can1["sdpMLineIndex"]);
       try {
         if (_localPc != null) await _localPc!.addCandidate(candidate);
       } catch (e) {
@@ -164,7 +175,6 @@ class CameraViewState extends State<CameraView> {
       }
     }
   }
-
 
   //--------------------------------------------------------------------------//
   @override
@@ -178,5 +188,4 @@ class CameraViewState extends State<CameraView> {
       ),
     );
   }
-
 }

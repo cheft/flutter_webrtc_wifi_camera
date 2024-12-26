@@ -12,7 +12,7 @@ class CamPanel extends StatefulWidget {
   const CamPanel(this.service, {Key? key}) : super(key: key);
 
   @override
-  createState()=>CamPanelState();
+  createState() => CamPanelState();
 }
 
 class CamPanelState extends State<CamPanel> {
@@ -65,19 +65,20 @@ class CamPanelState extends State<CamPanel> {
   //--------------------------------------------------------------------------//
   void _init() async {
     await _makeWebRTC();
-    String serverip = "http://"+widget.service.ip.toString()+":4001";
+    String serverip = "http://" + widget.service.ip.toString() + ":4001";
     await _startClientSocket(serverip);
   }
 
   //--------------------------------------------------------------------------//
   Future<void> _startClientSocket(String serverip) async {
-    _socket = IO.io(serverip, IO.OptionBuilder()
-      .setTransports(['websocket'])
-      .disableAutoConnect()
-      .enableMultiplex()
-      .build()
-    );
-    _socket!.on('msg', (data){
+    _socket = IO.io(
+        serverip,
+        IO.OptionBuilder()
+            .setTransports(['websocket'])
+            .disableAutoConnect()
+            .enableMultiplex()
+            .build());
+    _socket!.on('msg', (data) {
       final msg = jsonDecode(data);
       if (msg["command"] == "signal") {
         socketDataHandler(data);
@@ -91,7 +92,7 @@ class CamPanelState extends State<CamPanel> {
     await _remoteRenderer.initialize();
 
     _remotePc = await createPeerConnection(configuration, constraints);
-    _remotePc!.onIceConnectionState = (RTCIceConnectionState state){
+    _remotePc!.onIceConnectionState = (RTCIceConnectionState state) {
       switch (state) {
         case RTCIceConnectionState.RTCIceConnectionStateConnected:
           update();
@@ -126,12 +127,11 @@ class CamPanelState extends State<CamPanel> {
 
     _remotePc!.onTrack = (RTCTrackEvent event) async {
       if (event.track.kind == "video") {
+        // print('Received video track');
         _remoteRenderer.srcObject = event.streams.first;
       }
     };
-
   }
-
 
   //--------------------------------------------------------------------------//
   void _sendSocket(command, event, data) {
@@ -151,7 +151,8 @@ class CamPanelState extends State<CamPanel> {
 
     if (msg["type"] == "offer") {
       try {
-        await _remotePc!.setRemoteDescription(RTCSessionDescription(msg["data"], msg["type"]));
+        await _remotePc!.setRemoteDescription(
+            RTCSessionDescription(msg["data"], msg["type"]));
         RTCSessionDescription desc = await _remotePc!.createAnswer();
         await _remotePc!.setLocalDescription(desc);
         _sendSocket("signal", "answer", desc.sdp);
@@ -160,7 +161,8 @@ class CamPanelState extends State<CamPanel> {
       }
     } else if (msg["type"] == "candidate") {
       final can1 = msg["data"];
-      RTCIceCandidate candidate = RTCIceCandidate(can1["candidate"], can1["sdpMid"], can1["sdpMLineIndex"]);
+      RTCIceCandidate candidate = RTCIceCandidate(
+          can1["candidate"], can1["sdpMid"], can1["sdpMLineIndex"]);
       try {
         if (_remotePc != null) await _remotePc!.addCandidate(candidate);
       } catch (e) {
@@ -168,7 +170,6 @@ class CamPanelState extends State<CamPanel> {
       }
     }
   }
-
 
   //--------------------------------------------------------------------------//
   @override
@@ -190,5 +191,4 @@ class CamPanelState extends State<CamPanel> {
       ),
     );
   }
-
 }

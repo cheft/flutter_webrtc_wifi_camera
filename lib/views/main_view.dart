@@ -10,7 +10,7 @@ class MainView extends StatefulWidget {
   const MainView({Key? key}) : super(key: key);
 
   @override
-  createState()=>MainViewState();
+  createState() => MainViewState();
 }
 
 class MainViewState extends State<MainView> {
@@ -34,15 +34,19 @@ class MainViewState extends State<MainView> {
 
       _discovery!.eventStream!.listen((event) {
         if (event.service != null) {
-          ResolvedBonsoirService service = event.service as ResolvedBonsoirService;
+          ResolvedBonsoirService service =
+              event.service as ResolvedBonsoirService;
 
-          if (event.type == BonsoirDiscoveryEventType.discoveryServiceResolved) {
-            final index = _resolvedServices.indexWhere((ResolvedBonsoirService item) => item.ip == service.ip);
+          if (event.type ==
+              BonsoirDiscoveryEventType.discoveryServiceResolved) {
+            final index = _resolvedServices.indexWhere(
+                (ResolvedBonsoirService item) => item.ip == service.ip);
             if (index == -1 && service.ip.toString() != "null") {
               _resolvedServices.add(service);
               setState(() {});
             }
-          } else if (event.type == BonsoirDiscoveryEventType.discoveryServiceLost) {
+          } else if (event.type ==
+              BonsoirDiscoveryEventType.discoveryServiceLost) {
             _resolvedServices.remove(service);
             setState(() {});
           }
@@ -62,29 +66,29 @@ class MainViewState extends State<MainView> {
     _discoverService();
   }
 
-
   //--------------------------------------------------------------------------//
   Widget _camGrid() {
     bool isTablet = MediaQuery.of(context).size.shortestSide > 600;
-    bool isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+    bool isPortrait =
+        MediaQuery.of(context).orientation == Orientation.portrait;
 
     if (_resolvedServices.length > 0) {
       return SliverGrid(
-        delegate: SliverChildBuilderDelegate((BuildContext context, int index) {
-          final ResolvedBonsoirService service = _resolvedServices[index];
-          return Container(
-            child: Card(
-              child: CamPanel(service),
-            ),
-          );
-        }, childCount: _resolvedServices.length),
-        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: isTablet ? 600.0 : (isPortrait ? 400.0 : 600.0),
-          childAspectRatio: 1.2,
-          mainAxisSpacing: 4.0,
-          crossAxisSpacing: 4.0,
-        )
-      );
+          delegate:
+              SliverChildBuilderDelegate((BuildContext context, int index) {
+            final ResolvedBonsoirService service = _resolvedServices[index];
+            return Container(
+              child: Card(
+                child: CamPanel(service),
+              ),
+            );
+          }, childCount: _resolvedServices.length),
+          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: isTablet ? 600.0 : (isPortrait ? 400.0 : 600.0),
+            childAspectRatio: 1.2,
+            mainAxisSpacing: 4.0,
+            crossAxisSpacing: 4.0,
+          ));
     } else {
       return const SliverFillRemaining();
     }
@@ -95,22 +99,22 @@ class MainViewState extends State<MainView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: appBgColor,
-      appBar: AppBar(
-        title: Text("MyCAM"),
-        actions: [
-          IconButton(onPressed: _refreshCameras, icon: Icon(Icons.refresh_outlined)),
-        ],
-      ),
+      // appBar: AppBar(
+      //   title: const Text("MyCAM"),
+      //   actions: [
+      //     IconButton(
+      //         onPressed: _refreshCameras, icon: Icon(Icons.refresh_outlined)),
+      //   ],
+      // ),
       body: Stack(
         children: [
-          CustomScrollView(
-            slivers: [
-              _camGrid()
-            ],
-          )
+          _resolvedServices.isNotEmpty
+              ? Card(
+                  child: CamPanel(_resolvedServices[0]),
+                )
+              : Container(),
         ],
       ),
     );
   }
-
 }
